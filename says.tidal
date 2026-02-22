@@ -1,0 +1,33 @@
+// Nils Frahm "Says" — 150 BPM, Cm arpeggio, square + sine, reverb, dotted 1/4 delay
+setcps(150/60/4)
+
+// Strict ascending Cm arp, 2 octaves, 1 oct down, 8th notes
+// Direct note names = exact ascending order, no voicing algorithm needed
+let notes = "c2 eb2 g2 c3 eb3 g3 c4 eb4"
+
+// LFO period in cycles. At 150bpm/4, 1 cycle ≈ 1.6s → slow(32) ≈ 51s
+// Use different primes for each LFO so they drift out of phase over time
+let lfoSynth  = slider(32, 4, 96)   // filter sweep period (synth)
+let lfoNoise1 = slider(37, 4, 96)   // noise gain sweep period
+let lfoNoise2 = slider(19, 4, 96)   // noise filter sweep period
+
+// Main synth: sine + square, short pluck decay, slow filter LFO
+$: note(notes)
+  .s("sine")
+  .decay(slider(0.18, 0.05, 0.6))
+  .sustain(0)
+  .gain(slider(0.7, 0.1, 1))
+  .lpf(sine.slow(lfoSynth).range(200, slider(2400, 400, 6000)))
+  .room(slider(0.741, 0, 1))
+  .roomsize(slider(7.7, 0, 11))
+  .delay(slider(0.352, 0, 1))
+  .delaytime(0.6)
+  .delayfeedback(slider(0.457, 0, 0.95))
+
+// White noise bed: gain and lpf both evolve slowly on independent cycles
+$: s("white")
+  .seg(32)
+  .gain(sine.slow(lfoNoise1).range(0.005, slider(0.045, 0.005, 0.12)))
+  .lpf(sine.slow(lfoNoise2).range(150, slider(1600, 300, 3000)))
+  .room(slider(0.741, 0, 1))
+  .roomsize(slider(7.7, 0, 11))
